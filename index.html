@@ -1,340 +1,358 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>物質量（mol）と粒子・質量・体積の変換シミュレーター</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>化学 物質量(mol) & 粒子・質量・体積 相互変換シミュレーター</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Inter Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        header h1 {
-            color: var(--primary-dark);
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-        }
-
-        nav {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .nav-btn {
-            padding: 10px 20px;
-            border: 2px solid var(--primary);
-            background: white;
-            color: var(--primary);
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .nav-btn.active, .nav-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        label {
-            font-weight: bold;
-            font-size: 0.9rem;
-            color: var(--text-main);
-        }
-
-        select, input {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-
-        .sim-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .sim-grid {
-                grid-template-columns: 1fr;
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0B0F19',
+              card: '#111827',
+              border: '#1F2937',
+              accent: '#06B6D4',
+              accentHover: '#0891B2',
+              neonGreen: '#10B981',
+              neonPurple: '#A855F7',
+              neonYellow: '#F59E0B'
             }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
         }
+      }
+    }
+  </script>
 
-        .canvas-container {
-            position: relative;
-            background: #0f172a;
-            border-radius: 8px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        canvas {
-            width: 100%;
-            height: 320px;
-            display: block;
-        }
-
-        .canvas-overlay {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            background: rgba(0,0,0,0.6);
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .output-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .card {
-            background: #f8fafc;
-            border-left: 4px solid var(--primary);
-            padding: 12px 16px;
-            border-radius: 4px;
-        }
-
-        .card-title {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .card-value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: var(--text-main);
-        }
-
-        .quiz-option {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            text-align: left;
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.2s;
-        }
-
-        .quiz-option:hover {
-            background: #e2e8f0;
-        }
-
-        .feedback {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            display: none;
-        }
-
-        .feedback.correct {
-            display: block;
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .feedback.incorrect {
-            display: block;
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .btn-action {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .btn-action:hover {
-            background: var(--primary-dark);
-        }
-    </style>
+  <style>
+    body {
+      background-color: #0B0F19;
+      color: #F3F4F6;
+      font-family: 'Inter', sans-serif;
+    }
+    .glow-accent {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+    }
+    .glow-card {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #111827;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 3px;
+    }
+    /* Flowchart highlight active styling */
+    .flow-node-active {
+      border-color: #06B6D4 !important;
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+      background-color: rgba(6, 182, 212, 0.1) !important;
+    }
+    .flow-arrow-active {
+      color: #06B6D4 !important;
+      text-shadow: 0 0 8px #06B6D4;
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
 
-<div class="container">
-    <header>
-        <h1>物質量（mol）インタラクティブ・シミュレーター</h1>
-        <p>ミクロな結晶構造・粒子の配列とマクロな量の関係を体験しよう！</p>
-    </header>
-
-    <nav>
-        <button class="nav-btn active" onclick="switchTab(0)">① 物質量 → 3量の変換</button>
-        <button class="nav-btn" onclick="switchTab(1)">② 3量 → 物質量の逆算</button>
-        <button class="nav-btn" onclick="switchTab(2)">③ モル計算クイズ</button>
-    </nav>
-
-    <!-- Tab 1: mol -> 3量 -->
-    <div class="tab-content active" id="tab-0">
-        <div class="controls">
-            <div class="control-group">
-                <label for="substance-select-1">物質の選択 (種類・結晶構造):</label>
-                <select id="substance-select-1" onchange="updateTab1()">
-                    <option value="NaCl">塩化ナトリウム NaCl (イオン結晶)</option>
-                    <option value="Fe">鉄 Fe (金属結晶)</option>
-                    <option value="C">炭素/黒鉛 C (層状構造/グラフェン)</option>
-                    <option value="H2O">水 H₂O (分子)</option>
-                    <option value="CO2">二酸化炭素 CO₂ (分子)</option>
-                    <option value="Ar">アルゴン Ar (単原子)</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label for="mol-slider">物質量: <span id="mol-val-display">1.00</span> mol</label>
-                <input type="range" id="mol-slider" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateTab1()">
-            </div>
+  <!-- Header Header Nav -->
+  <header class="border-b border-gray-800 bg-gray-900/80 backdrop-filter backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+          <i class="fa-solid fa-atom text-xl"></i>
         </div>
-
-        <div class="sim-grid">
-            <div class="canvas-container">
-                <canvas id="canvas-tab1"></canvas>
-                <div class="canvas-overlay" id="canvas-info-1">結晶・粒子構造モデル</div>
-            </div>
-            <div class="output-panel">
-                <div class="card" style="border-color: #2563eb;">
-                    <div class="card-title">① 粒子の個数（アボガドロ定数: 6.0×10²³ /mol）</div>
-                    <div class="card-value" id="out-count">6.0 × 10²³ 個</div>
-                </div>
-                <div class="card" style="border-color: #10b981;">
-                    <div class="card-title">② 質量（モル質量 $M$）</div>
-                    <div class="card-value" id="out-mass">58.5 g</div>
-                </div>
-                <div class="card" style="border-color: #f59e0b;">
-                    <div class="card-title">③ 気体の体積（標準状態: 0℃, 1atm）</div>
-                    <div class="card-value" id="out-vol">22.4 L（気体のみ適用）</div>
-                </div>
-            </div>
+        <div>
+          <h1 class="font-bold text-lg text-white tracking-wide flex items-center gap-2">
+            Molecule Lab <span class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-normal">物質量 mol</span>
+          </h1>
+          <p class="text-xs text-gray-400">化学基礎：物質量・個数・質量・気体体積の相互変換</p>
         </div>
+      </div>
+
+      <!-- Tab Buttons -->
+      <nav class="flex bg-gray-950 p-1 rounded-xl border border-gray-800 text-sm font-medium">
+        <button id="tab-btn-1" onclick="switchTab(1)" class="px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 bg-cyan-600 text-white shadow-md">
+          <i class="fa-solid fa-calculator"></i>
+          <span>① mol ➔ 3量変換</span>
+        </button>
+        <button id="tab-btn-2" onclick="switchTab(2)" class="px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 text-gray-400 hover:text-white">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>② 逆引き変換</span>
+        </button>
+        <button id="tab-btn-3" onclick="switchTab(3)" class="px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 text-gray-400 hover:text-white">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>③ 演習クイズ</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+    <!-- Constant info banner -->
+    <div class="mb-6 p-3 rounded-xl bg-gray-900/60 border border-gray-800 text-xs text-gray-300 flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-cyan-400"></i>
+        <span>計算の前提条件:</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-4 text-gray-400 font-mono">
+        <span>アボガドロ定数 $N_A = 6.02 \times 10^{23} \text{ /mol}$</span>
+        <span>気体標準状態 (0℃, 1atm): $V_m = 22.4 \text{ L/mol}$</span>
+      </div>
     </div>
 
-    <!-- Tab 2: 3量 -> mol -->
-    <div class="tab-content" id="tab-1">
-        <div class="controls">
-            <div class="control-group">
-                <label for="substance-select-2">物質を選択:</label>
-                <select id="substance-select-2" onchange="updateTab2()">
-                    <option value="NaCl">塩化ナトリウム NaCl (式量: 58.5)</option>
-                    <option value="Fe">鉄 Fe (原子量: 56.0)</option>
-                    <option value="C">炭素 C (原子量: 12.0)</option>
-                    <option value="H2O">水 H₂O (分子量: 18.0)</option>
-                    <option value="CO2">二酸化炭素 CO₂ (分子量: 44.0)</option>
-                </select>
+    <!-- PAGE 1: Forward Converter (mol -> particle, mass, volume) -->
+    <section id="page-1" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Controls & Results Panel (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+        
+        <!-- Substance Selector Card -->
+        <div class="glow-card rounded-2xl p-5 border border-gray-800">
+          <label class="text-xs text-cyan-400 font-semibold tracking-wider uppercase mb-2 block flex items-center gap-1.5">
+            <i class="fa-solid fa-flask"></i> 1. 物質の選択
+          </label>
+          <select id="p1-substance-select" onchange="updateP1Calculations()" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-medium focus:outline-none focus:border-cyan-500 transition-colors">
+            <!-- Dynamically populated -->
+          </select>
+
+          <!-- Substance detail preview -->
+          <div class="mt-4 p-3.5 bg-gray-950/80 rounded-xl border border-gray-800/80 flex justify-between items-center">
+            <div>
+              <div class="text-xs text-gray-400">分類・化学式</div>
+              <div class="text-lg font-bold text-white font-mono" id="p1-formula-display">--</div>
             </div>
-            <div class="control-group">
-                <label for="input-mode">指定する量を選択:</label>
-                <select id="input-mode" onchange="updateTab2()">
-                    <option value="mass">質量 (g) から計算</option>
-                    <option value="count">個数 (個) から計算</option>
-                    <option value="vol">気体の体積 (L) から計算</option>
-                </select>
+            <div class="text-right">
+              <div class="text-xs text-gray-400">モル質量</div>
+              <div class="text-lg font-bold text-cyan-400 font-mono"><span id="p1-molar-mass-display">--</span> <span class="text-xs text-gray-400">g/mol</span></div>
             </div>
-            <div class="control-group">
-                <label for="input-val">数値を入力:</label>
-                <input type="number" id="input-val" value="58.5" step="0.1" oninput="updateTab2()">
-            </div>
+          </div>
         </div>
 
-        <div class="sim-grid">
-            <div class="canvas-container">
-                <canvas id="canvas-tab2"></canvas>
-            </div>
-            <div class="output-panel">
-                <div class="card" style="border-color: #2563eb; background: #eff6ff;">
-                    <div class="card-title">計算結果（物質量）</div>
-                    <div class="card-value" id="out-calc-mol" style="color: #1d4ed8; font-size: 1.8rem;">1.00 mol</div>
-                </div>
-                <div class="card" style="border-color: #64748b;">
-                    <div class="card-title">計算プロセス (モルブリッジ)</div>
-                    <div id="out-calc-process" style="font-size: 0.95rem; margin-top: 5px;">58.5 g ÷ 58.5 g/mol = 1.00 mol</div>
-                </div>
-            </div>
-        </div>
-    </div>
+        <!-- Mol Slider & Input Card -->
+        <div class="glow-card rounded-2xl p-5 border border-gray-800">
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-xs text-cyan-400 font-semibold tracking-wider uppercase flex items-center gap-1.5">
+              <i class="fa-solid fa-sliders"></i> 2. 物質量 (mol) の設定
+            </label>
+            <span class="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded font-mono">0.01 ～ 5.00 mol</span>
+          </div>
 
-    <!-- Tab 3: クイズ -->
-    <div class="tab-content" id="tab-2">
-        <h2 style="margin-bottom: 15px; color: var(--primary-dark);">モル計算チャレンジ！</h2>
-        <div id="quiz-container">
-            <p id="quiz-question" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 15px;"></p>
-            <div id="quiz-options"></div>
-            <div id="quiz-feedback" class="feedback"></div>
+          <div class="flex items-center gap-4 my-3">
+            <input type="range" id="p1-mol-range" min="0.01" max="5.00" step="0.01" value="1.00" oninput="syncP1MolInput('range')" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+            <div class="flex items-center gap-1 min-w-[100px]">
+              <input type="number" id="p1-mol-num" min="0.01" max="100" step="0.01" value="1.00" oninput="syncP1MolInput('number')" class="w-20 bg-gray-950 border border-cyan-500/50 rounded-lg px-2.5 py-1.5 text-center font-bold font-mono text-cyan-300 text-lg focus:outline-none focus:border-cyan-400">
+              <span class="text-xs text-gray-400 font-medium">mol</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Calculated Output Cards -->
+        <div class="grid grid-cols-1 gap-3">
+          
+          <!-- Particle Count Card -->
+          <div class="glow-card rounded-xl p-4 border border-gray-800/90 relative overflow-hidden group">
+            <div class="absolute left-0 top-0 bottom-0 w-1 bg-purple-500"></div>
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-xs text-gray-400 font-medium flex items-center gap-1.5">
+                <i class="fa-solid fa-[#10B981] fa-cubes text-purple-400"></i> 粒子の個数
+              </span>
+              <span class="text-[10px] text-gray-500 font-mono">N = n × 6.02×10²³</span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-purple-300" id="p1-res-particles">--</div>
+            <div class="text-[11px] text-gray-400 mt-1 font-mono" id="p1-res-particles-raw">(-- 個)</div>
+          </div>
+
+          <!-- Mass Card -->
+          <div class="glow-card rounded-xl p-4 border border-gray-800/90 relative overflow-hidden group">
+            <div class="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500"></div>
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-xs text-gray-400 font-medium flex items-center gap-1.5">
+                <i class="fa-solid fa-weight-hanging text-cyan-400"></i> 質量 (g)
+              </span>
+              <span class="text-[10px] text-gray-500 font-mono">m = n × モル質量</span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-cyan-300" id="p1-res-mass">--</div>
+            <div class="text-[11px] text-gray-400 mt-1" id="p1-res-mass-desc">--</div>
+          </div>
+
+          <!-- Gas Volume Card -->
+          <div class="glow-card rounded-xl p-4 border border-gray-800/90 relative overflow-hidden group">
+            <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-xs text-gray-400 font-medium flex items-center gap-1.5">
+                <i class="fa-solid fa-wind text-emerald-400"></i> 気体の体積 (標準状態)
+              </span>
+              <span class="text-[10px] text-gray-500 font-mono">V = n × 22.4 L</span>
+            </div>
+            <div class="text-2xl font-bold font-mono text-emerald-300" id="p1-res-volume">--</div>
+            <div class="text-[11px] text-gray-400 mt-1" id="p1-res-volume-desc">※気体のみ適用可能</div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Right Simulation Canvas Panel (7 cols) -->
+      <div class="lg:col-span-7 flex flex-col h-full min-h-[480px]">
+        <div class="glow-card rounded-2xl border border-gray-800 p-4 flex flex-col h-full relative overflow-hidden">
+          
+          <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+              <h2 class="font-bold text-sm text-gray-200">粒子シミュレーション（視覚的モル概念）</h2>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="bg-gray-800 text-gray-300 px-2.5 py-1 rounded-full font-mono" id="canvas-particle-count-tag">描画粒子数: -- 個</span>
+              <button onclick="toggleCanvasPause()" id="btn-canvas-pause" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded-lg border border-gray-700 transition">
+                <i class="fa-solid fa-pause"></i> 一時停止
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="relative w-full flex-grow rounded-xl overflow-hidden bg-gray-950 border border-gray-800/80 min-h-[360px]" id="canvas-container">
+            <canvas id="particle-canvas" class="w-full h-full block"></canvas>
+            
+            <!-- Canvas Overlay Badge -->
+            <div class="absolute bottom-3 left-3 bg-gray-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-gray-800 text-xs font-mono text-gray-300 pointer-events-none">
+              <span class="text-cyan-400 font-bold">1 particles in simulation</span> ≈ <span id="canvas-mol-representation">1.00 mol</span> (<span id="canvas-real-count">6.02 × 10²³</span> 個の極小粒子群)
+            </div>
+          </div>
+
+          <!-- Legend / Description below canvas -->
+          <div class="mt-3 text-xs text-gray-400 leading-relaxed bg-gray-950/40 p-2.5 rounded-xl border border-gray-800/50 flex items-center justify-between">
+            <div id="substance-structure-note">
+              <!-- Dynamically populated -->
+            </div>
+            <div class="text-[10px] text-gray-500 text-right">※画面上の描画数はmol量に比例した密度のイメージ表現です</div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PAGE 2: Reverse Converter & Mole Bridge -->
+    <section id="page-2" class="hidden flex-col gap-6">
+      
+      <!-- Top Input & Select Section -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        <!-- Substance Choice (4 cols) -->
+        <div class="md:col-span-4 glow-card rounded-2xl p-5 border border-gray-800">
+          <label class="text-xs text-cyan-400 font-semibold tracking-wider uppercase mb-2 block flex items-center gap-1.5">
+            <i class="fa-solid fa-flask"></i> 1. 物質の選択
+          </label>
+          <select id="p2-substance-select" onchange="calculateP2Reverse()" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-medium focus:outline-none focus:border-cyan-500">
+            <!-- Dynamically populated -->
+          </select>
+          <div class="mt-4 p-3 bg-gray-950/80 rounded-xl border border-gray-800/80 text-xs flex justify-between">
+            <span class="text-gray-400">モル質量:</span>
+            <span class="text-cyan-400 font-mono font-bold" id="p2-molar-mass-val">-- g/mol</span>
+          </div>
+        </div>
+
+        <!-- Input Mode Tabs & Entry (8 cols) -->
+        <div class="md:col-span-8 glow-card rounded-2xl p-5 border border-gray-800">
+          <label class="text-xs text-cyan-400 font-semibold tracking-wider uppercase mb-2 block">
+            2. 入力項目の選択（どれか1つの値を指定）
+          </label>
+          
+          <!-- Mode Tabs -->
+          <div class="grid grid-cols-3 gap-2 p-1 bg-gray-950 rounded-xl border border-gray-800 mb-4 text-xs font-medium">
+            <button id="p2-tab-particles" onclick="setP2Mode('particles')" class="py-2 rounded-lg transition text-cyan-400 bg-gray-800 border border-cyan-500/30">
+              <i class="fa-solid fa-cubes"></i> 粒子の個数から
+            </button>
+            <button id="p2-tab-mass" onclick="setP2Mode('mass')" class="py-2 rounded-lg transition text-gray-400 hover:text-white">
+              <i class="fa-solid fa-weight-hanging"></i> 質量 (g) から
+            </button>
+            <button id="p2-tab-volume" onclick="setP2Mode('volume')" class="py-2 rounded-lg transition text-gray-400 hover:text-white">
+              <i class="fa-solid fa-wind"></i> 気体の体積 (L) から
+            </button>
+          </div>
+
+          <!-- Dynamic Input Controls -->
+          <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800">
+            
+            <!-- Input Mode: Particles -->
+            <div id="p2-input-group-particles" class="p2-input-group flex flex-col sm:flex-row items-center gap-3">
+              <div class="flex-grow w-full">
+                <label class="text-xs text-gray-400 mb-1 block">粒子の個数 (例: 1.204 × 10²⁴ 個)</label>
+                <div class="flex items-center gap-2">
+                  <input type="number" id="p2-val-part-coeff" value="3.01" step="0.01" oninput="calculateP2Reverse()" class="w-28 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-center">
+                  <span class="text-gray-400 font-mono">× 10 ^</span>
+                  <input type="number" id="p2-val-part-exp" value="23" step="1" oninput="calculateP2Reverse()" class="w-20 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-center">
+                  <span class="text-xs text-gray-400">個</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Mode: Mass -->
+            <div id="p2-input-group-mass" class="p2-input-group hidden flex-col sm:flex-row items-center gap-3">
+              <div class="flex-grow w-full">
+                <label class="text-xs text-gray-400 mb-1 block">質量 (g)</label>
+                <div class="flex items-center gap-2">
+                  <input type="number" id="p2-val-mass" value="36.0" step="0.1" min="0" oninput="calculateP2Reverse()" class="w-48 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-center text-lg">
+                  <span class="text-xs text-gray-400">g</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Mode: Volume -->
+            <div id="p2-input-group-volume" class="p2-input-group hidden flex-col sm:flex-row items-center gap-3">
+              <div class="flex-grow w-full">
+                <label class="text-xs text-gray-400 mb-1 block">気体の体積 (L / 標準状態)</label>
+                <div class="flex items-center gap-2">
+                  <input type="number" id="p2-val-volume" value="11.2" step="0.1" min="0" oninput="calculateP2Reverse()" class="w-48 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-center text-lg">
+                  <span class="text-xs text-gray-400">L</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Mole Bridge Visual Flowchart Card -->
+      <div class="glow-card rounded-2xl p-6 border border-gray-800">
+        <h3 class="text-xs text-cyan-400 font-semibold tracking-wider uppercase mb-6 flex items-center gap-2">
+          <i class="fa-solid fa-diagram-project"></i> モル・ブリッジ（相互変換フローチャート）
+        </h3>
+
+        <!-- Interactive Flow Graph -->
+        <div class="grid grid-cols-1 md:grid-cols-7 gap-3 items-center text-center">
+          
+          <!-- Outer 1: Particle Count -->
+          <div id="flow-node-particles" class="p-4 rounded-xl border border-gray-800 bg-gray-950 transition-all duration-300">
+            <div class="text-xs text-gray-400 mb-1">粒子の個数</div>
+            <div class="text-lg font-bold font-mono text-purple-400" id="flow-val-particles">--</div>
+            <div class="text-[10px] text-gray-500 mt-1">N (個)</div>
+          </div>
+
+          <!-- Arrow 1 -->
+          <div class="flex
